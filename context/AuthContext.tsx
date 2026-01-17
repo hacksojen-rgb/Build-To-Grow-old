@@ -1,11 +1,10 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   user: any | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<void>; // email এর বদলে username
   logout: () => void;
   loading: boolean;
 }
@@ -17,7 +16,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check local storage for session on mount
     const savedUser = localStorage.getItem('admin_user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
@@ -25,17 +23,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
-    // Check against admin_users table
+  const login = async (username: string, password: string) => {
+    // এখানে .eq('email', email) ছিল, সেটা পরিবর্তন করে 'username' করা হয়েছে
     const { data, error } = await supabase
       .from('admin_users')
       .select('*')
-      .eq('email', email)
-      .eq('password', password) // In production, use Supabase Auth with hashed passwords
+      .eq('username', username) 
+      .eq('password', password)
       .maybeSingle();
 
     if (error || !data) {
-      throw new Error("Invalid credentials or unauthorized access.");
+      throw new Error("Invalid username or password.");
     }
 
     setUser(data);
